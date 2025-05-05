@@ -1,6 +1,6 @@
 "use client";
 import { useColorArrays } from "@/app/Common/Store";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 function TodoDiv() {
@@ -9,6 +9,10 @@ function TodoDiv() {
   const deleteDiv = useColorArrays((state) => state.deleteDiv);
   const deleteTask = useColorArrays((state) => state.deleteTask);
   const toggleDone = useColorArrays((state) => state.toggleDone);
+
+  const draggedTaskRef = useRef<{ divIndex: number; taskIndex: number } | null>(
+    null
+  );
 
   const [editIndex, setEditIndex] = useState<{
     div: number;
@@ -42,8 +46,8 @@ function TodoDiv() {
     setInputValues(updated);
   };
 
-  const handleDeleteTask = (TaskIndex: number, DivIndex: number) => {
-    deleteTask(TaskIndex, DivIndex);
+  const handleDeleteTask = (taskIndex: number, divIndex: number) => {
+    deleteTask(taskIndex, divIndex);
   };
 
   const handleEdit = (taskIndex: number, divIndex: number) => {
@@ -77,6 +81,7 @@ function TodoDiv() {
     <div className="w-full flex flex-wrap gap-4">
       {TodoDivs.map((el, index) => (
         <motion.div
+          key={index}
           drag
           dragMomentum={false}
           dragElastic={0}
@@ -84,14 +89,14 @@ function TodoDiv() {
           className="w-full max-w-[350px]"
         >
           <button
-            onClick={() => {
-              downloadFile(el.tasks);
-            }}
+            onClick={() => downloadFile(el.tasks)}
             className="h-[30px] hover:underline text-green-600 font-extrabold text-[18px] pl-[10px] pr-[10px]"
           >
             Download
           </button>
           <form
+            data-drop-index={index}
+            style={{ position: "relative", zIndex: 0, pointerEvents: "auto" }}
             onSubmit={(e) => handleSubmit(e, index)}
             className={`rounded-[20px] min-h-[200px] flex flex-col gap-[10px] ${el.color} pt-[20px] px-[20px] pb-[20px] relative shadow-2xl`}
           >
@@ -116,7 +121,61 @@ function TodoDiv() {
             </button>
             <ol className="text-white list-disc pl-[16px] flex flex-col gap-[7px]">
               {el.tasks.map((task, i) => (
-                <div key={i} className="flex justify-between items-center">
+                <motion.div
+                  key={i}
+                  drag
+                  dragMomentum={false}
+                  dragElastic={0}
+                  layout
+                  className="flex justify-between items-center cursor-grab active:cursor-grabbing"
+                  onDragStart={() => {
+                    draggedTaskRef.current = { divIndex: index, taskIndex: i };
+                  }}
+                  onPointerUp={(event) => {
+                    const draggedElement = event.currentTarget as HTMLElement;
+                    draggedElement.style.pointerEvents = "none";
+
+                    requestAnimationFrame(() => {
+                      const clientX = event.clientX;
+                      const clientY = event.clientY;
+
+                      const elementAtPoint = document.elementFromPoint(
+                        clientX,
+                        clientY
+                      );
+                      const dropTarget =
+                        elementAtPoint?.closest("[data-drop-index]");
+
+                      draggedElement.style.pointerEvents = "";
+
+                      if (!dropTarget || !draggedTaskRef.current) return;
+
+                      const targetDivIndex =
+                        dropTarget.getAttribute("data-drop-index");
+
+                      if (
+                        targetDivIndex !== null &&
+                        parseInt(targetDivIndex) !==
+                          draggedTaskRef.current.divIndex
+                      ) {
+                        const { divIndex, taskIndex } = draggedTaskRef.current;
+                        const state = useColorArrays.getState();
+                        const draggedTask =
+                          state.Array[divIndex]?.tasks[taskIndex];
+
+                        if (draggedTask) {
+                          state.deleteTask(taskIndex, divIndex);
+                          state.addTask(
+                            parseInt(targetDivIndex),
+                            draggedTask.text
+                          );
+                        }
+                      }
+
+                      draggedTaskRef.current = null;
+                    });
+                  }}
+                >
                   {editIndex?.div === index && editIndex?.task === i ? (
                     <>
                       <input
@@ -142,13 +201,10 @@ function TodoDiv() {
                   ) : (
                     <>
                       <li
-                        className={`${
-                          task.done ? "line-through opacity-50" : ""
-                        } `}
+                        className={task.done ? "line-through opacity-50" : ""}
                       >
                         {task.text}
                       </li>
-
                       <div className="flex gap-[2px]">
                         <button
                           onClick={() => handleEdit(i, index)}
@@ -171,7 +227,7 @@ function TodoDiv() {
                       </div>
                     </>
                   )}
-                </div>
+                </motion.div>
               ))}
             </ol>
           </form>
