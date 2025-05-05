@@ -4,7 +4,6 @@ import React from "react";
 
 function PlusButton() {
   const setOpen = useColorDiv((state) => state.setOpen);
-  const open = useColorDiv((state) => state.open);
   function Open() {
     setOpen();
   }

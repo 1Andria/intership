@@ -1,7 +1,7 @@
 "use client";
 import { useColorArrays } from "@/app/Common/Store";
 import { motion } from "framer-motion";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 
 function TodoDiv() {
   const TodoDivs = useColorArrays((state) => state.Array);

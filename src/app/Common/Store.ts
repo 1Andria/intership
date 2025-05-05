@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 
 type ColorTypes = {
   open: boolean;
@@ -63,7 +63,6 @@ export const useColorArrays = create<TodoInputs>()(
               : item
           ),
         })),
-     
 
       toggleDone: (divIndex, taskIndex) =>
         set((state) => {
