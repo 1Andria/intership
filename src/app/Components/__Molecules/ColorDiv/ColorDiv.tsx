@@ -55,7 +55,7 @@ function ColorDiv() {
                   onClick={() => {
                     TodoDivs(el);
                   }}
-                  className={` ${el} w-[50px] h-[50px] rounded-[50px]`}
+                  className={` ${el} cursor-pointer w-[50px] h-[50px] rounded-[50px]`}
                 ></div>
               ))}
             </div>
