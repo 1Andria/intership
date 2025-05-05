@@ -1,5 +1,6 @@
 "use client";
 import { useColorArrays } from "@/app/Common/Store";
+import { motion } from "framer-motion";
 import React, { useRef, useState } from "react";
 
 function TodoDiv() {
@@ -8,11 +9,6 @@ function TodoDiv() {
   const deleteDiv = useColorArrays((state) => state.deleteDiv);
   const deleteTask = useColorArrays((state) => state.deleteTask);
   const toggleDone = useColorArrays((state) => state.toggleDone);
-
-  const draggedTaskRef = useRef<{ divIndex: number; taskIndex: number } | null>(
-    null
-  );
-
   const [editIndex, setEditIndex] = useState<{
     div: number;
     task: number;
@@ -79,7 +75,10 @@ function TodoDiv() {
   return (
     <div className="w-full flex flex-wrap gap-4">
       {TodoDivs.map((el, index) => (
-        <div
+        <motion.div
+          drag
+          dragMomentum={false}
+          dragElastic={0}
           key={index}
           className="w-full max-w-[350px]"
           onDragOver={(e) => e.preventDefault()}
@@ -198,7 +197,7 @@ function TodoDiv() {
               ))}
             </ol>
           </form>
-        </div>
+        </motion.div>
       ))}
     </div>
   );
